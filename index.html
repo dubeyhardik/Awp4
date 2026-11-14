@@ -792,7 +792,7 @@
 
       rsvp: {
         endpoint: "", // Leave empty for local preview; add webhook/API URL for production backend storage
-        whatsappNumber: "" // Optional: e.g. "919876543210" if you want optional WhatsApp dispatch
+        whatsappNumber: " 7490913399" // Optional: e.g. "919876543210" if you want optional WhatsApp dispatch
       },
 
       scenes: [
@@ -1756,41 +1756,7 @@
         dom.rsvpModal.setAttribute("aria-hidden", "true");
       }
 
-      dom.rsvpForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const payload = {
-          guestName: document.getElementById("guest-name").value.trim(),
-          guestCount: document.getElementById("guest-count").value,
-          attendance: document.getElementById("guest-attendance").value,
-          submittedAt: new Date().toISOString()
-        };
-
-        if (!payload.guestName) return;
-
-        // Backend-ready dispatch
-        if (weddingConfig.rsvp && weddingConfig.rsvp.endpoint) {
-          dom.rsvpStatus.textContent = "Sending your response...";
-          try {
-            const res = await fetch(weddingConfig.rsvp.endpoint, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            });
-            if (res.ok) {
-              dom.rsvpStatus.textContent = `Thank you, ${payload.guestName}. Your RSVP has been recorded.`;
-              dom.rsvpForm.reset();
-            } else {
-              dom.rsvpStatus.textContent = "Unable to reach server. Please try again shortly.";
-            }
-          } catch (err) {
-            dom.rsvpStatus.textContent = "Network error while submitting RSVP.";
-          }
-        } else {
-          // Honest local preview confirmation when no backend endpoint is configured
-          dom.rsvpStatus.textContent = `Thank you, ${payload.guestName}. Your response (${payload.guestCount} guest(s)) is prepared for this preview session. Connect 'weddingConfig.rsvp.endpoint' to store responses permanently.`;
-        }
-      });
-
+      
       /* ----------------------------------------------------------------------
          11. SUBTLE FLOATING GOLDEN PARTICLES & MARIGOLD PETALS
          ---------------------------------------------------------------------- */
@@ -1840,7 +1806,65 @@
 
         requestAnimationFrame(animateParticles);
       }
+dom.rsvpForm.addEventListener("submit", (e) => {
+  e.preventDefault();
 
+  const payload = {
+    guestName: document.getElementById("guest-name").value.trim(),
+    guestCount: document.getElementById("guest-count").value,
+    attendance: document.getElementById("guest-attendance").value,
+    submittedAt: new Date().toISOString()
+  };
+
+  if (!payload.guestName) return;
+
+  const whatsappNumber = weddingConfig.rsvp.whatsappNumber;
+
+  if (!whatsappNumber) {
+    dom.rsvpStatus.textContent =
+      "WhatsApp number is not configured.";
+    return;
+  }
+
+  const attendanceText =
+    payload.attendance === "joyfully_accepts"
+      ? "Joyfully Accepts"
+      : "Regretfully Declines";
+
+  const message = `
+👑 *ROYAL WEDDING RSVP*
+
+💍 *Ananya & Arjun*
+
+━━━━━━━━━━━━━━━━━━
+
+👤 Guest Name: ${payload.guestName}
+
+👥 Number of Guests: ${payload.guestCount}
+
+💌 Attendance: ${attendanceText}
+
+📅 Wedding Date: ${weddingConfig.couple.date}
+
+🏰 Venue: ${weddingConfig.venue.name}
+
+━━━━━━━━━━━━━━━━━━
+
+Thank you for responding to our royal invitation!
+  `;
+
+  const whatsappURL =
+    "https://wa.me/" +
+    whatsappNumber +
+    "?text=" +
+    encodeURIComponent(message);
+
+  dom.rsvpStatus.textContent =
+    "Opening WhatsApp... Please send your RSVP.";
+
+  window.open(whatsappURL, "_blank");
+
+});
       /* ----------------------------------------------------------------------
          12. EVENT LISTENERS & INITIALIZATION
          ---------------------------------------------------------------------- */
