@@ -1197,16 +1197,36 @@
         dom.openInstruction.textContent = opening.instruction;  
   
         // Apply opening poster if image exists, keeping rich architectural gradient fallback  
-        if (opening.poster) {  
-          const img = new Image();  
-          img.onload = () => {  
-            dom.openingScreen.style.backgroundImage = `  
-              radial-gradient(circle at 50% 28%, rgba(18, 11, 9, 0.35) 0%, rgba(18, 11, 9, 0.88) 100%),  
-              url('${opening.poster}')  
-            `;  
-          };  
-          img.src = opening.poster;  
-        }  
+        // Show Scene 01 first frame behind the opening invitation
+
+const firstScene = scenes[0];
+
+if (firstScene && firstScene.video) {
+
+  dom.video.muted = true;
+  dom.video.preload = "auto";
+
+  if (firstScene.poster) {
+    dom.video.setAttribute("poster", firstScene.poster);
+  }
+
+  dom.video.classList.add("visible");
+
+  dom.video.addEventListener("loadeddata", () => {
+
+    dom.video.pause();
+
+    try {
+      dom.video.currentTime = 0;
+    } catch (error) {}
+
+    dom.video.classList.add("visible");
+
+  }, { once: true });
+
+  dom.video.src = firstScene.video;
+  dom.video.load();
+}
   
         // Build 7-segment progress indicator  
         dom.progressContainer.innerHTML = "";  
